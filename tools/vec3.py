@@ -10,6 +10,12 @@ class vec3:
         return self.b
     def z(self):
         return self.c
+    def r(self):
+        return self.a
+    def g(self):
+        return self.b
+    def b_(self):
+        return self.c
     def length(self):
         return math.sqrt(self.a ** 2 +self.b ** 2 + self.c ** 2)
     def squared_length(self):
@@ -47,6 +53,9 @@ if __name__ == "__main__":
     print("q:")
     print("len of q", q.length())
     q.show()
+    k=p.mul(2000)
+    k.show()
+    p.show()
     c = p + q
     c.show()
     c = p - q

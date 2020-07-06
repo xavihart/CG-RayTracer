@@ -1,4 +1,4 @@
-from vec3 import *
+from .vec3 import *
 class ray:
     def __init__(self, a_, b_):
         # note : a_ and b_ must be vec3
