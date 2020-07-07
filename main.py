@@ -4,9 +4,10 @@ from tools.ray import *
 import numpy as np
 import sys
 import os
+import timer
 
 
-h = 1000
+h = 100
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
@@ -39,7 +40,7 @@ def color(r):
         N = r.point_at_parameter(t) - vec3(0, 0, -1)
         N.make_unit_vector()
         vec = vec3(N.x() + 1, N.y() + 1, N.z() + 1)
-        return vec.mul(2)
+        return vec.mul(0.5)
     a = r.direction()
     a.make_unit_vector()
     white = vec3(1,1,1)
