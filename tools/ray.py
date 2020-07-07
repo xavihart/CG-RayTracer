@@ -9,7 +9,7 @@ class ray:
     def direction(self):
         return self.b
     def point_at_parameter(self, t):
-        return a + b.mul(t)
+        return self.a + self.b.mul(t)
 if __name__ == "__main__":
     a = vec3(1,2,3)
     b = vec3(1,1,1)
