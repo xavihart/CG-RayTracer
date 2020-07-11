@@ -1,6 +1,7 @@
 from .ray import *
+
 class hit_record:
-    def __init__(self, t_, p_, n_):
+    def __init__(self, t_=0, p_=0, n_=vec3(0, 0, 0)):
         self.t = t_
         self.p = p_
         self.normal = n_
@@ -14,7 +15,7 @@ class sphere:
         oc = r.origin() - self.cen
         a = r.direction()
         a = a.dot(a)
-        b = 2 * oc.dot(r.direction()) 
+        b = oc.dot(r.direction()) 
         c = oc.dot(oc) - self.rad * self.rad
         disc = b ** 2 - a * c
         if disc > 0:
@@ -23,12 +24,14 @@ class sphere:
                 rec.t = tmp
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.cen).div(self.rad)
+                rec.normal.show()
                 return True
             tmp = (-b + math.sqrt(disc)) / a
             if tmp < t_max and tmp > t_min:
                 rec.t = tmp
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.cen).div(self.rad)
+                #rec.normal.show()
                 return True
         return False
 
