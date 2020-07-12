@@ -8,7 +8,7 @@ import os
 import timer
 
 
-h = 100
+h = 300
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
@@ -42,9 +42,9 @@ def color(r, obj):
     obj : hitable object list ,a list of sphere for example
     """
     hit_rec = hit_record(0, 0, vec3(0, 0, 0))
-    
-    if obj.hit(r, 0, 1e9 + 7, hit_rec):
-        hit_rec.normal.show()
+    (hit_rec, f) = obj.hit(r, 0, 1e9 + 7)
+    if f:
+        #hit_rec.normal.show()
         return vec3(hit_rec.normal.x()+1, hit_rec.normal.y()+1, hit_rec.normal.z()+1).mul(0.5)
     else:
         unit_dir = r.direction()
@@ -60,7 +60,7 @@ def main():
 
     nx, ny = a.shape[0], a.shape[1] // 3
     print("shape:", nx, ny)
-    l = [sphere(vec3(0, 0, -1), 0.5)]
+    l = [sphere(vec3(0, -100.5, -1), 100), sphere(vec3(0, 0, -1), 0.5)]
     sp_l = sphere_list(l)
     for i in range(nx):
         for j in range(ny-1, -1, -1):
