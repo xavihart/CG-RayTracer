@@ -1,6 +1,6 @@
 import math
 class vec3:
-    def __init__(self, a_, b_, c_):
+    def __init__(self, a_=0, b_=0, c_=0):
         self.a = a_
         self.b = b_
         self.c = c_

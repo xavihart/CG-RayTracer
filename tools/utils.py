@@ -1,3 +1,4 @@
+from .vec3 import *
 import numpy as np
 import os 
 
@@ -15,5 +16,17 @@ def save_ppm(file_path, ppm_mat):
         f.write("\n")
     f.close()
 
-    
-    
+def random_unit_sphere():
+    p = vec3(1, 1, 1)
+    while p.squared_length() >= 1:
+        p = vec3(np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)) \
+            .mul(2) - vec3(1, 1, 1)
+    return p 
+
+def reflect(v:vec3, n:vec3) -> vec3:
+    """
+    param:
+    v : ray-in
+    n : normal of the incidence point
+    """
+    return v - n.mul(2*v.dot(n))

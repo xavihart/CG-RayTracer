@@ -1,6 +1,6 @@
 from .vec3 import *
 class ray:
-    def __init__(self, a_, b_):
+    def __init__(self, a_=vec3(0, 0, 0), b_=vec3(0, 0, 0)):
         # note : a_ and b_ must be vec3
         self.a = a_
         self.b = b_

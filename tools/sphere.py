@@ -1,16 +1,19 @@
 from .ray import *
+from .material import *
 import copy
+
 class hit_record:
-    def __init__(self, t_=0, p_=0, n_=vec3(0, 0, 0)):
+    def __init__(self, t_=0, p_=0, n_=vec3(0, 0, 0), mat_=lambertian(vec3(0, 0, 0))):
         self.t = t_
         self.p = p_
         self.normal = n_
-
+        self.mat = mat_
 
 class sphere:
-    def __init__(self, cen_, rad_):
+    def __init__(self, cen_, rad_, mat_):
         self.cen = cen_
         self.rad = rad_
+        self.mat = mat_
     def hit(self, r, t_min, t_max):
         oc = r.origin() - self.cen
         a = r.direction()
@@ -25,6 +28,7 @@ class sphere:
                 rec.t = tmp
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.cen).div(self.rad)
+                rec.mat = self.mat
                 #rec.normal.show()
                 #print("1")
                 return (rec, True)
@@ -33,6 +37,7 @@ class sphere:
                 rec.t = tmp
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.cen).div(self.rad)
+                rec.mat = self.mat
                 #rec.normal.show()
                 #print("2")
                 return (rec, True)
@@ -40,7 +45,4 @@ class sphere:
 
 if __name__ == "__main__":
     hit_rec = hit_record(0,0,vec3(0,0,0))
-    s1 = sphere(vec3(0, 0, 0), 2)
-    ra = ray(vec3(0, 0, 0), vec3(1, 1, 1))
-    a = s1.hit(ra, -1.14, 1.14, hit_rec)
-    print(a)
+    

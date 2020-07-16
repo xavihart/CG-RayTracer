@@ -3,14 +3,15 @@ from tools.vec3 import *
 from tools.ray import *
 from tools.hit_list import *
 from tools.camera import *
+from tools.material import *
 import numpy as np
 import sys
 import os
 import timer
 
 
-h = 100
-
+h = 200
+MAXNUM = 1e9
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -36,37 +37,73 @@ def hit_sphere(c, rad, r):
         return (-b - math.sqrt(disc)) / (2 * a)
 
 
-def color(r, obj):
+
+
+def color1(r, obj):
     """
     param:
     r : ray 
     obj : hitable object list ,a list of sphere for example
     """
     hit_rec = hit_record(0, 0, vec3(0, 0, 0))
-    (hit_rec, f) = obj.hit(r, 0, 1e9 + 7)
+    (hit_rec, f) = obj.hit(r, 0.0001, 1e9 + 7)
     if f:
         #hit_rec.normal.show()
-        return vec3(hit_rec.normal.x()+1, hit_rec.normal.y()+1, hit_rec.normal.z()+1).mul(0.5)
+        #return vec3(hit_rec.normal.x()+1, hit_rec.normal.y()+1, hit_rec.normal.z()+1).mul(0.5)
+        tar = hit_rec.p + hit_rec.normal + random_unit_sphere()
+        return color(ray(hit_rec.p, tar - hit_rec.p), obj).mul(0.5)
     else:
         unit_dir = r.direction()
         unit_dir.make_unit_vector()
         t = 0.5 * (unit_dir.y() + 1)
         return vec3(1 ,1, 1).mul(1 - t) + vec3(0.5, 0.7, 1.0).mul(t)
 
+def color(r, objs, dep):
+    rec = hit_record()
+    (rec, f) = objs.hit(r, 0.001, MAXNUM)
+    if f:
+        attenuation = vec3()
+        scattered = ray()
+        if dep < 50 and rec.mat.scatter(r, rec, attenuation, scattered):
+            return color(scattered, objs, dep + 1)
+        else:
+            return vec3(0, 0, 0)
+    else:
+        unit_dir = r.direction()
+        unit_dir.make_unit_vector()
+        t = 0.5 * (unit_dir.y() + 1)
+        return vec3(1 ,1, 1).mul(1 - t) + vec3(0.5, 0.7, 1.0).mul(t)
+
+    
+
+
+
 def main():
-    lower_left_corner = vec3(-2, -1, -1)
+    #lower_left_corner = vec3(-2, -1, -1)
     cam = camera()
     ny, nx = a.shape[0], a.shape[1] // 3
-    ns = 100
+    ns = 5
     print("shape:", nx, ny)
-    l = [sphere(vec3(0, -100.5, -1), 100), sphere(vec3(0, 0, -1), 0.5)]
+    l = []
+    ## sphere properties
+    sphere_cen = [vec3(0,0,-1), vec3(0, -100.5, -1), vec3(1, 0, -1), vec3(-1, 0, -1)]
+    sphere_rad = [0.5, 100, 0.5, 0.5]
+    sphere_mat = [lambertian(vec3(0.8, 0.3, 0.3)), lambertian(vec3(0.8, 0.8, 0.0)), \
+        metal(vec3(0.8, 0.6, 0.2)), metal(vec3(0.8, 0.8, 0.8))]
+    
+    assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
+
+    for i in range(len(sphere_mat)):
+        l.append(sphere(sphere_cen[i], sphere_rad[i], sphere_mat[i]))
+
     sp_l = sphere_list(l)
+
     for i in range(nx):
         for j in range(ny-1, -1, -1):
             u = i / nx
             v = j / ny
             col = vec3(0, 0, 0)
-            for s in range(ns):
+            for _ in range(ns):
                 u_, v_ = -1, -1
                 while u_ > 1 or u_ < 0:
                     u_ = u + np.random.uniform(0, 1e-2)
@@ -74,9 +111,10 @@ def main():
                     v_ = v + np.random.uniform(0, 1e-2)
                 #print(u_, v_)
                 r_ = cam.get_ray(u_, v_)
-                col = col + color(r_, sp_l)
+                col = col + color(r_, sp_l, 0)
                 
             col = col.div(ns)
+            col = vec3(math.sqrt(col.x()), math.sqrt(col.y()), math.sqrt(col.z()))
             # r = ray(origin, lower_left_corner + horizontal.mul(u) + vertical.mul(v))
             # p = r.point_at_parameter(2.0)
             # col = color(r, sp_l)
