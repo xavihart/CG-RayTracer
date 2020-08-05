@@ -3,7 +3,7 @@ from .material import *
 import copy
 
 class hit_record:
-    def __init__(self, t_=0, p_=0, n_=vec3(0, 0, 0), mat_=lambertian(vec3(0, 0, 0))):
+    def __init__(self, t_=0, p_=vec3(0, 0, 0), n_=vec3(0, 0, 0), mat_=lambertian(vec3(0, 0, 0))):
         self.t = t_
         self.p = p_
         self.normal = n_
