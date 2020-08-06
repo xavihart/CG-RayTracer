@@ -138,12 +138,12 @@ def color(r, objs, dep):
 def main():
     #lower_left_corner = vec3(-2, -1, -1)
     ny, nx = a.shape[0], a.shape[1] // 3
-    aperture = 2
-    look_from = vec3(3, 2, 3)
+    aperture = 0
+    look_from = vec3(8, 2, 2)
     look_at = vec3(0, 0, -1)
-    dist_to_focus = (look_from - look_at).length()
+    dist_to_focus = 1
 
-    cam = camera(look_from, look_at, vec3(0, 1, 0), 50, nx / ny, aperture, dist_to_focus)    
+    cam = camera(look_from, look_at, vec3(0, 1, 0), 30, nx / ny, aperture, dist_to_focus)    
     ns = args.ns
     l = []
     ## sphere properties list
