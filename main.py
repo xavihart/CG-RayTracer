@@ -89,6 +89,7 @@ def color(r, objs, dep):
         # r.direction().show()
         unit_dir.make_unit_vector()
         t = 0.5 * (unit_dir.y() + 1)
+        # print(t)
         return vec3(1 ,1, 1).mul(1 - t) + vec3(0.5, 0.7, 1.0).mul(t)
 
     
@@ -97,17 +98,35 @@ def color(r, objs, dep):
 
 def main():
     #lower_left_corner = vec3(-2, -1, -1)
-    cam = camera()
     ny, nx = a.shape[0], a.shape[1] // 3
+    cam = camera(vec3(-2, 2, 1), vec3(0, 0, -1), vec3(0, 1, 0), 80, nx / ny)    
     ns = args.ns
-    print("shape:", nx, ny)
     l = []
-    ## sphere properties
-    sphere_cen = [vec3(0,0,-1), vec3(0, -100.5, -1), vec3(1, 0, -1), vec3(-1, 0, -1)]
-    sphere_rad = [0.5, 100, 0.5, 0.5]
-    sphere_mat = [metal(vec3(0.8, 0.3, 0.3)), lambertian(vec3(0.8, 0.8, 0.0)), \
-        metal(vec3(0.8, 0.6, 0.2)), metal(vec3(0.8, 0.8, 0.8))]
+    ## sphere properties list
+
+    cen_list = [(i * 0.2 - 0.6, 0) for i in range(7)] + [(i * 0.2 - 0.6, -1.2) for i in range(7)] \
+        + [(-0.6, -0.2 - i * 0.2) for i in range(5)] + [(0.6, -0.2 - i * 0.2) for i in range(5)] + [(-0.4 + i * 0.2, -0.6) for i in range(5)] \
+             + [(i * 0.2 - 1.2, 0.4) for i in range(13)]
+
+
+
+    sphere_cen = []
+    ceng = 5
+    for c in range(ceng):
+        sphere_cen = sphere_cen +  [vec3(i, 0.1 * c, j) for (i, j) in cen_list]
+
+    sphere_cen += [vec3(0, -100.5, -1)]
+    sphere_rad = [0.1 for i in range(len(cen_list))] * ceng + [100]
+    sphere_mat = ([metal(vec3(0.9, 0.1, 0.9), 0) for i in range(len(cen_list) - 13)] + [lambertian(vec3(0.1, 0.5, 0.4)) for i in range(13)]) * ceng + [lambertian(vec3(0.8, 0.8, 0.0))]
     
+    """
+    sphere_cen = [vec3(0,0,-1), vec3(0, -100.5, -1), vec3(1, 0, -1), vec3(-1, 0, -1), vec3(0, 0, 0), vec3(0, 0, -3), vec3(3, 0, -3), vec3(2, 2, -10)]
+    sphere_rad = [0.5, 100, 0.5, 0.5, 0.5, 1, 1.5, 3]
+    sphere_mat = [lambertian(vec3(0.1, 0.2, 0.5)), lambertian(vec3(0.8, 0.8, 0.0)), \
+        metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5), metal(vec3(0.1, 0.5, 0.4), 0), \
+        metal(vec3(0.9, 0.1, 0.9), 0), lambertian(vec3(0.3, 0.3, 0.4)), metal(vec3(0.5, 0.5, 0.4), 0)]
+    """
+
     assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
 
     for i in range(len(sphere_mat)):
@@ -120,27 +139,22 @@ def main():
             u = i / nx
             v = j / ny
             col = vec3(0, 0, 0)
+            # background diffusion
             for _ in range(ns):
                 u_, v_ = -1, -1
                 while u_ > 1 or u_ < 0:
                     u_ = u + np.random.uniform(0, 1e-4)
                 while v_ > 1 or v_ < 0:
                     v_ = v + np.random.uniform(0, 1e-4)
+                # get sight
                 r_ = cam.get_ray(u_, v_)
-                # print("$$$$$$$$$$$")
-                # print(u_, v_)
-                # r_.direction().show()
-
                 col = col + color(r_, sp_l, 0)
-                
+            # gamma repair
             col = col.div(ns)
             col = vec3(math.sqrt(col.x()), math.sqrt(col.y()), math.sqrt(col.z()))
-            # r = ray(origin, lower_left_corner + horizontal.mul(u) + vertical.mul(v))
-            # p = r.point_at_parameter(2.0)
-            # col = color(r, sp_l)
             ir, ig, ib = int(255.99 * col.x()), int(255.99 * col.y()), int(255.99 * col.z())
             a[ny - 1 - j][i * 3], a[ny - 1 - j][i * 3 + 1], a[ny - 1 - j][i * 3 + 2] = ir, ig, ib
-
+    # save image as *.ppm 
     save_ppm(file_pth, a)
     time_ed = time.time()
     print("Time consm:", (time_ed - time_st) / 60, "min")

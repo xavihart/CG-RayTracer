@@ -30,3 +30,21 @@ def reflect(v:vec3, n:vec3) -> vec3:
     n : normal of the incidence point
     """
     return v - n.mul(2*v.dot(n))
+
+
+def refract(v:vec3, n:vec3, ni_over_nt, args:dict) -> bool:
+    """
+    param:
+    v : input light
+    n : normal for incidence point
+    ni_over_nt : sin(ni) / sin(nt) 
+    args: dict {'refracted': ?}
+    """
+    v.make_unit_vector()
+    dt = v.dot(n)
+    discriminant = 1.0 - (ni_over_nt ** 2) * (1 - dt ** 2)
+    if discriminant > 0:
+        args['refracted'] = (v - n.mul(dt)).mul(ni_over_nt) - n.mul(math.sqrt(discriminant))
+        return True
+    else:
+        return False

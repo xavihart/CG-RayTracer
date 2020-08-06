@@ -28,6 +28,8 @@ class vec3:
         return vec3(self.a / other.a, self.b / other.b, self.c / other.c)
     def __mul__(self, other):
         return vec3(self.a * other.a, self.b * other.b, self.c * other.c)
+    def __neg__(self):
+        return vec3(-self.a, -self.b, -self.c)
     def mul(self, p):
         return vec3(self.a * p, self.b * p, self.c * p)
     def div(self, p):
