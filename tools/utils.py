@@ -48,3 +48,15 @@ def refract(v:vec3, n:vec3, ni_over_nt, args:dict) -> bool:
         return True
     else:
         return False
+def random_in_unit_disk():
+    p = vec3()
+    p = vec3(np.random.uniform(0, 1), np.random.uniform(0, 1), 0).mul(2) - vec3(1, 1, 0)
+    while True:
+        a = p.dot(p)
+        if a < 1:
+            break
+        else:
+            p = vec3(np.random.uniform(0, 1), np.random.uniform(0, 1), 0).mul(2) - vec3(1, 1, 0)
+    return p
+            
+        

@@ -1,7 +1,9 @@
 from .ray import *
 from .vec3 import *
+from .utils import *
 class camera:
-    def __init__(self, lookfrom, lookat, vup, vfov, aspect):
+    def __init__(self, lookfrom, lookat, vup, vfov, aspect, aperture, focus_dist):
+        self.len_radius = aperture / 2
         u, v, w = vec3(), vec3(), vec3()
         theta = vfov * math.pi / 180
         half_h = math.tan(theta / 2)
@@ -12,10 +14,16 @@ class camera:
         w.make_unit_vector()
         u.make_unit_vector()
         v = w.cross(u)
-        self.lower_left_corner = self.origin - u.mul(half_w) - v.mul(half_h) - w
-        self.horizontal = u.mul(2 * half_w)
-        self.vertical  = v.mul(2 * half_h)
+        self.lower_left_corner = self.origin - u.mul(half_w * focus_dist) - v.mul(half_h * focus_dist) - w.mul(focus_dist)
+        self.horizontal = u.mul(2 * half_w * focus_dist)
+        self.vertical  = v.mul(2 * half_h * focus_dist)
+        self.u = u
+        self.v = v
+        self.w = w
     def get_ray(self, s, t):
-        return ray(self.origin, self.lower_left_corner + self.horizontal.mul(s) + self.vertical.mul(t) - self.origin)
+        rd = random_in_unit_disk()
+        rd = rd.mul(self.len_radius)
+        offset = self.u.mul(rd.x()) + self.v.mul(rd.y())
+        return ray(self.origin + offset, self.lower_left_corner + self.horizontal.mul(s) + self.vertical.mul(t) - self.origin - offset)
 
     

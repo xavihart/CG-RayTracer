@@ -30,6 +30,45 @@ print("NOTE: The resolution of your image is:[{} * {}]".format(h, h * 2))
 
 file_pth = os.path.join("./results", "{}.ppm".format(args.name))
 
+
+def generate_random_spheres():
+    """
+    using methods from the book 11 * 11 grids
+    """
+    n = 5
+    cen_list, rad_list, mat_list = [], [], []
+    cen_list.append(vec3(0, -1000, 0))
+    rad_list.append(1000)
+    mat_list.append(lambertian(vec3(0.5, 0.5, 0.5)))
+    for a in range(-n, n):
+        for b in range(-n, n):
+            p = np.random.uniform(0, 1)
+            cent = vec3(a + 0.9 * np.random.uniform(0, 1), 0.2, b + np.random.uniform(0, 1))
+            if (cent - vec3(4, 0.2, 0)).length() > 0.9:
+                if p < 0.8:
+                    cen_list.append(cent)
+                    rad_list.append(0.2)
+                    mat_list.append(lambertian(vec3(np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2)))
+                elif p < 0.95:
+                    cen_list.append(cent)
+                    rad_list.append(0.2)
+                    mat_list.append(metal(vec3((np.random.uniform(0, 1) + 1 ) / 2 , (np.random.uniform(0, 1) + 1 ) / 2, (np.random.uniform(0, 1) + 1 ) / 2), \
+                        np.random.uniform(0, 1) * 0.5))
+                else:
+                    cen_list.append(cent)
+                    rad_list.append(0.2)
+                    mat_list.append(dielectric(1.5))
+    cen_list += [vec3(0, 1, 0), vec3(-4, 1, 0), vec3(4, 1, 0)]
+    rad_list += [1, 1, 1]
+    mat_list += [dielectric(1.5), lambertian(vec3(0.4, 0.2, 0.1)), metal(vec3(0.7, 0.6, 0.5), 0.0)]
+    return cen_list, rad_list, mat_list
+    
+
+
+
+
+
+
 def hit_sphere(c, rad, r):
     """
     c : vec3, center 
@@ -99,15 +138,20 @@ def color(r, objs, dep):
 def main():
     #lower_left_corner = vec3(-2, -1, -1)
     ny, nx = a.shape[0], a.shape[1] // 3
-    cam = camera(vec3(-2, 2, 1), vec3(0, 0, -1), vec3(0, 1, 0), 80, nx / ny)    
+    aperture = 2
+    look_from = vec3(3, 2, 3)
+    look_at = vec3(0, 0, -1)
+    dist_to_focus = (look_from - look_at).length()
+
+    cam = camera(look_from, look_at, vec3(0, 1, 0), 50, nx / ny, aperture, dist_to_focus)    
     ns = args.ns
     l = []
     ## sphere properties list
 
+    """
     cen_list = [(i * 0.2 - 0.6, 0) for i in range(7)] + [(i * 0.2 - 0.6, -1.2) for i in range(7)] \
         + [(-0.6, -0.2 - i * 0.2) for i in range(5)] + [(0.6, -0.2 - i * 0.2) for i in range(5)] + [(-0.4 + i * 0.2, -0.6) for i in range(5)] \
              + [(i * 0.2 - 1.2, 0.4) for i in range(13)]
-
 
 
     sphere_cen = []
@@ -119,15 +163,16 @@ def main():
     sphere_rad = [0.1 for i in range(len(cen_list))] * ceng + [100]
     sphere_mat = ([metal(vec3(0.9, 0.1, 0.9), 0) for i in range(len(cen_list) - 13)] + [lambertian(vec3(0.1, 0.5, 0.4)) for i in range(13)]) * ceng + [lambertian(vec3(0.8, 0.8, 0.0))]
     
-    """
-    sphere_cen = [vec3(0,0,-1), vec3(0, -100.5, -1), vec3(1, 0, -1), vec3(-1, 0, -1), vec3(0, 0, 0), vec3(0, 0, -3), vec3(3, 0, -3), vec3(2, 2, -10)]
-    sphere_rad = [0.5, 100, 0.5, 0.5, 0.5, 1, 1.5, 3]
+   
+    sphere_cen = [vec3(0,0,-1), vec3(0, -100.5, -1), vec3(1, 0, -1), vec3(-1, 0, -1)]
+    sphere_rad = [0.5, 100, 0.5, 0.5]
     sphere_mat = [lambertian(vec3(0.1, 0.2, 0.5)), lambertian(vec3(0.8, 0.8, 0.0)), \
-        metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5), metal(vec3(0.1, 0.5, 0.4), 0), \
-        metal(vec3(0.9, 0.1, 0.9), 0), lambertian(vec3(0.3, 0.3, 0.4)), metal(vec3(0.5, 0.5, 0.4), 0)]
+        metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5)]
     """
 
+    sphere_cen, sphere_rad, sphere_mat = generate_random_spheres()
     assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
+    print("You generated {} spheres at all".format(len(sphere_cen)))
 
     for i in range(len(sphere_mat)):
         l.append(sphere(sphere_cen[i], sphere_rad[i], sphere_mat[i]))
@@ -143,9 +188,9 @@ def main():
             for _ in range(ns):
                 u_, v_ = -1, -1
                 while u_ > 1 or u_ < 0:
-                    u_ = u + np.random.uniform(0, 1e-4)
+                    u_ = u + np.random.uniform(0, 1e-5)
                 while v_ > 1 or v_ < 0:
-                    v_ = v + np.random.uniform(0, 1e-4)
+                    v_ = v + np.random.uniform(0, 1e-5)
                 # get sight
                 r_ = cam.get_ray(u_, v_)
                 col = col + color(r_, sp_l, 0)
