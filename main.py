@@ -28,40 +28,53 @@ time_st = time.time()
 
 print("NOTE: The resolution of your image is:[{} * {}]".format(h, h * 2))
 
-file_pth = os.path.join("./results", "{}.ppm".format(args.name))
+file_pth = os.path.join("./results/nxt_week", "{}.ppm".format(args.name))
 
 
 def generate_random_spheres():
     """
     using methods from the book 11 * 11 grids
+    return sphere list
     """
+    obj_list = []
     n = 5
-    cen_list, rad_list, mat_list = [], [], []
-    cen_list.append(vec3(0, -1000, 0))
-    rad_list.append(1000)
-    mat_list.append(lambertian(vec3(0.5, 0.5, 0.5)))
+    # cen_list.append(vec3(0, -1000, 0))
+    # rad_list.append(1000)
+    # mat_list.append(lambertian(vec3(0.5, 0.5, 0.5)))
+    obj_list.append(sphere(vec3(0, -1000, 0), 1000, lambertian(vec3(0.5, 0.5, 0.5))))
     for a in range(-n, n):
         for b in range(-n, n):
             p = np.random.uniform(0, 1)
             cent = vec3(a + 0.9 * np.random.uniform(0, 1), 0.2, b + np.random.uniform(0, 1))
             if (cent - vec3(4, 0.2, 0)).length() > 0.9:
                 if p < 0.8:
-                    cen_list.append(cent)
-                    rad_list.append(0.2)
-                    mat_list.append(lambertian(vec3(np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2)))
+                    # cen_list.append(cent)
+                    # rad_list.append(0.2)
+                    m = lambertian(vec3(np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2))
+                    # moving.append[1]
+                    cent_end = cent + vec3(0, 0.5 * np.random.uniform(0, 1), 0)
+                    obj_list.append(moving_sphere(cent, cent_end, 0, 1, 0.2, m))
                 elif p < 0.95:
-                    cen_list.append(cent)
-                    rad_list.append(0.2)
-                    mat_list.append(metal(vec3((np.random.uniform(0, 1) + 1 ) / 2 , (np.random.uniform(0, 1) + 1 ) / 2, (np.random.uniform(0, 1) + 1 ) / 2), \
-                        np.random.uniform(0, 1) * 0.5))
+                    #moving.append(0)
+                    #cen_list.append(cent)
+                    #rad_list.append(0.2)
+                    mat = metal(vec3((np.random.uniform(0, 1) + 1 ) / 2 , (np.random.uniform(0, 1) + 1 ) / 2, (np.random.uniform(0, 1) + 1 ) / 2), \
+                        np.random.uniform(0, 1) * 0.5)
+                    obj_list.append(sphere(cent, 0.2, mat))
                 else:
-                    cen_list.append(cent)
-                    rad_list.append(0.2)
-                    mat_list.append(dielectric(1.5))
+                    # moving.append(0)
+                    # cen_list.append(cent)
+                    # rad_list.append(0.2)
+                    # mat_list.append(dielectric(1.5))
+                    obj_list.append(sphere(cent, 0.2, dielectric(1.5)))
+    cen_list, rad_list, mat_list = [], [], []
     cen_list += [vec3(0, 1, 0), vec3(-4, 1, 0), vec3(4, 1, 0)]
     rad_list += [1, 1, 1]
     mat_list += [dielectric(1.5), lambertian(vec3(0.4, 0.2, 0.1)), metal(vec3(0.7, 0.6, 0.5), 0.0)]
-    return cen_list, rad_list, mat_list
+    for i in range(len(cen_list)):
+        obj_list.append(sphere(cen_list[i], rad_list[i], mat_list[i]))
+    
+    return obj_list
     
 
 
@@ -143,7 +156,7 @@ def main():
     look_at = vec3(0, 0, -1)
     dist_to_focus = 1
 
-    cam = camera(look_from, look_at, vec3(0, 1, 0), 30, nx / ny, aperture, dist_to_focus)    
+    cam = camera(look_from, look_at, vec3(0, 1, 0), 30, nx / ny, aperture, dist_to_focus, 0, 1)    
     ns = args.ns
     l = []
     ## sphere properties list
@@ -170,12 +183,12 @@ def main():
         metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5)]
     """
 
-    sphere_cen, sphere_rad, sphere_mat = generate_random_spheres()
-    assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
-    print("You generated {} spheres at all".format(len(sphere_cen)))
+    l = generate_random_spheres()
+    # assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
+    print("You generated {} spheres at all".format(len(l)))
 
-    for i in range(len(sphere_mat)):
-        l.append(sphere(sphere_cen[i], sphere_rad[i], sphere_mat[i]))
+    # for i in range(len(sphere_mat)):
+    #   l.append(sphere(sphere_cen[i], sphere_rad[i], sphere_mat[i]))
     
     sp_l = sphere_list(l)
 
@@ -193,6 +206,7 @@ def main():
                     v_ = v + np.random.uniform(0, 1e-5)
                 # get sight
                 r_ = cam.get_ray(u_, v_)
+                print(r_.time())
                 col = col + color(r_, sp_l, 0)
             # gamma repair
             col = col.div(ns)

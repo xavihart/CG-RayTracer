@@ -1,4 +1,4 @@
-from .sphere import sphere
+from .sphere import sphere, moving_sphere
 from .sphere import hit_record
 from .vec3 import *
 class sphere_list:
