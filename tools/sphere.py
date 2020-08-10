@@ -83,7 +83,7 @@ class moving_sphere():
         return (rec, False)
         
     def center(self, t):
-        return self.cen1 + self.cen2.mul(((t - self.t1) / (self.t2 - self.t1)))
+        return self.cen1 + (self.cen2 - self.cen1).mul(((t - self.t1) / (self.t2 - self.t1)))
 
 
 

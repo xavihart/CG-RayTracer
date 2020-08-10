@@ -206,7 +206,7 @@ def main():
                     v_ = v + np.random.uniform(0, 1e-5)
                 # get sight
                 r_ = cam.get_ray(u_, v_)
-                print(r_.time())
+                # print(r_.time())
                 col = col + color(r_, sp_l, 0)
             # gamma repair
             col = col.div(ns)

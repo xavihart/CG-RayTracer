@@ -7,10 +7,11 @@ class lambertian:
     def scatter(self, rin, args):
         rec = args['rec']
         tar = rec.p + rec.normal + random_unit_sphere()
-        args['scattered'] = ray(rec.p, tar - rec.p)
+        args['scattered'] = ray(rec.p, tar - rec.p, rin.time())
         #print("scattered")
         #scattered.direction().show()
         args['attenuation'] = self.albedo
+    
         return True
 
 
