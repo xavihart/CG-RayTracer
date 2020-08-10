@@ -1,4 +1,5 @@
 from .vec3 import *
+from .aabb import *
 import numpy as np
 import os 
 
@@ -59,4 +60,14 @@ def random_in_unit_disk():
             p = vec3(np.random.uniform(0, 1), np.random.uniform(0, 1), 0).mul(2) - vec3(1, 1, 0)
     return p
             
+
+def surrounding_bbx(box1:aabb, box2:aabb):
+    small = vec3(min(box1._min.x(), box2._min.x()), \
+                 min(box1._min.x(), box2._min.y()), \
+                 min(box1._min.x(), box2._min.y()))
+    large = vec3(max(box1._min.x(), box2._min.x()), \
+                 max(box1._min.x(), box2._min.y()), \
+                 max(box1._min.x(), box2._min.y()))
+    return aabb(small, large)
+              
         

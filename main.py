@@ -4,6 +4,8 @@ from tools.ray import *
 from tools.hit_list import *
 from tools.camera import *
 from tools.material import *
+from tools.aabb import *
+from tools.texture import *
 import numpy as np
 import sys
 import os
@@ -30,18 +32,26 @@ print("NOTE: The resolution of your image is:[{} * {}]".format(h, h * 2))
 
 file_pth = os.path.join("./results/nxt_week", "{}.ppm".format(args.name))
 
+def two_spheres():
+    checker = checker_texture(constant_texture(vec3(0.2, 0.3, 0.1)), constant_texture(vec3(0.9, 0.9, 0.9)))
+    l = []
+    l.append(sphere(vec3(0, -10, 0), 10, lambertian(checker)))
+    l.append(sphere(vec3(0, 10, 0), 10, lambertian(checker)))
+    return l
 
 def generate_random_spheres():
     """
     using methods from the book 11 * 11 grids
     return sphere list
     """
+
     obj_list = []
     n = 5
     # cen_list.append(vec3(0, -1000, 0))
     # rad_list.append(1000)
     # mat_list.append(lambertian(vec3(0.5, 0.5, 0.5)))
-    obj_list.append(sphere(vec3(0, -1000, 0), 1000, lambertian(vec3(0.5, 0.5, 0.5))))
+    checker = checker_texture(constant_texture(vec3(0.2, 0.3, 0.1)), constant_texture(vec3(0.9, 0.9, 0.9)))
+    obj_list.append(sphere(vec3(0, -1000, 0), 1000, lambertian(checker)))
     for a in range(-n, n):
         for b in range(-n, n):
             p = np.random.uniform(0, 1)
@@ -50,7 +60,8 @@ def generate_random_spheres():
                 if p < 0.8:
                     # cen_list.append(cent)
                     # rad_list.append(0.2)
-                    m = lambertian(vec3(np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2))
+                    vp = vec3(np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2, np.random.uniform(0, 1) ** 2)
+                    m = lambertian(constant_texture(vp))
                     # moving.append[1]
                     cent_end = cent + vec3(0, 0.5 * np.random.uniform(0, 1), 0)
                     obj_list.append(moving_sphere(cent, cent_end, 0, 1, 0.2, m))
@@ -70,17 +81,12 @@ def generate_random_spheres():
     cen_list, rad_list, mat_list = [], [], []
     cen_list += [vec3(0, 1, 0), vec3(-4, 1, 0), vec3(4, 1, 0)]
     rad_list += [1, 1, 1]
-    mat_list += [dielectric(1.5), lambertian(vec3(0.4, 0.2, 0.1)), metal(vec3(0.7, 0.6, 0.5), 0.0)]
+    mat_list += [dielectric(1.5), lambertian(constant_texture(vec3(0.4, 0.2, 0.1))), metal(vec3(0.7, 0.6, 0.5), 0.0)]
     for i in range(len(cen_list)):
         obj_list.append(sphere(cen_list[i], rad_list[i], mat_list[i]))
     
     return obj_list
     
-
-
-
-
-
 
 def hit_sphere(c, rad, r):
     """
@@ -152,9 +158,9 @@ def main():
     #lower_left_corner = vec3(-2, -1, -1)
     ny, nx = a.shape[0], a.shape[1] // 3
     aperture = 0
-    look_from = vec3(8, 2, 2)
-    look_at = vec3(0, 0, -1)
-    dist_to_focus = 1
+    look_from = vec3(13, 2, 3)
+    look_at = vec3(0, 0, 0)
+    dist_to_focus = 10
 
     cam = camera(look_from, look_at, vec3(0, 1, 0), 30, nx / ny, aperture, dist_to_focus, 0, 1)    
     ns = args.ns
@@ -183,7 +189,7 @@ def main():
         metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5)]
     """
 
-    l = generate_random_spheres()
+    l = two_spheres()
     # assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
     print("You generated {} spheres at all".format(len(l)))
 
@@ -198,6 +204,7 @@ def main():
             v = j / ny
             col = vec3(0, 0, 0)
             # background diffusion
+            """
             for _ in range(ns):
                 u_, v_ = -1, -1
                 while u_ > 1 or u_ < 0:
@@ -210,6 +217,9 @@ def main():
                 col = col + color(r_, sp_l, 0)
             # gamma repair
             col = col.div(ns)
+            """
+            r = cam.get_ray(u, v)
+            col = col + color(r, sp_l, 0)
             col = vec3(math.sqrt(col.x()), math.sqrt(col.y()), math.sqrt(col.z()))
             ir, ig, ib = int(255.99 * col.x()), int(255.99 * col.y()), int(255.99 * col.z())
             a[ny - 1 - j][i * 3], a[ny - 1 - j][i * 3 + 1], a[ny - 1 - j][i * 3 + 2] = ir, ig, ib

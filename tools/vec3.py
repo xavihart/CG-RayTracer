@@ -45,7 +45,15 @@ class vec3:
         return vec3(self.b * other.c - self.c * other.b, - (self.a * other.c - self.c * other.a), self.a * other.b - self.b * other.a)
     def dot(self, other):
         return self.a * other.a + self.b * other.b + self.c * other.c
-
+    def idx(self, i):
+        assert i >= 0 and i < 3
+        if i == 0:
+            return self.x()
+        if i == 1:
+            return self.y()
+        if i == 2:
+            return self.z()
+        
 if __name__ == "__main__":
     p = vec3(3,4,5)
     print("p:")

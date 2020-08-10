@@ -1,7 +1,8 @@
 from .ray import *
 from .material import *
 import copy
-
+from .aabb import *
+from .utils import *
 class hit_record:
     def __init__(self, t_=0, p_=vec3(0, 0, 0), n_=vec3(0, 0, 0), mat_=lambertian(vec3(0, 0, 0))):
         self.t = t_
@@ -14,6 +15,13 @@ class sphere:
         self.cen = cen_
         self.rad = rad_
         self.mat = mat_
+    def bbx(self, t0, t1):
+        # return a AABB box from this function
+        r = self.rad 
+        c = self.cen
+        box = aabb(c - vec3(r, r, r), c + vec3(r, r, r))
+        return (True, box)
+
     def hit(self, r, t_min, t_max):
         oc = r.origin() - self.cen
         a = r.direction()
@@ -52,6 +60,13 @@ class moving_sphere():
         self.t2 = t2_
         self.mat = mat_
         self.rad = r
+    def bbx(self, t0, t1):
+        # return a AABB box at certain time
+        r = self.rad 
+        c1, c2 = self.center(t0), self.center(t1)
+        box1 = aabb(c1 - vec3(r, r, r), c1 + vec3(r, r, r))
+        box2 = aabb(c2 - vec3(r, r, r), c2 + vec3(r, r, r))
+        return (True, surrounding_bbx(box1, box2))
     def hit(self, r:ray, t_min:float, t_max:float)->(hit_record, bool):
         rt = r.time()
         oc = r.origin() - self.center(rt)

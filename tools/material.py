@@ -1,5 +1,6 @@
 from .ray import *
 from .utils import *
+from .texture import *
 
 class lambertian:
     def __init__(self, a):
@@ -10,7 +11,7 @@ class lambertian:
         args['scattered'] = ray(rec.p, tar - rec.p, rin.time())
         #print("scattered")
         #scattered.direction().show()
-        args['attenuation'] = self.albedo
+        args['attenuation'] = self.albedo.value(0, 0, args['rec'].p)
     
         return True
 
