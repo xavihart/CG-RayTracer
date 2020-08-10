@@ -45,6 +45,6 @@ Properties:
 
 
 Snaps:
-![0001](C:\Users\HP\Desktop\实验室\CG\CG-RayTracer\0001.jpg)
+![0001]("./0001.jpg")
 
-<img src="C:\Users\HP\Desktop\实验室\CG\CG-RayTracer\0002.jpg" alt="0002" style="zoom: 25%;" />
+<img src="./0002.jpg" alt="0002" style="zoom: 25%;" />
