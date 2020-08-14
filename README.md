@@ -24,7 +24,7 @@ Properties:
 >
 > :white_check_mark: Camera position and blur
 
-:white_check_mark: Next Week
+:white_circle: Next Week
 
 >
 >
@@ -34,7 +34,7 @@ Properties:
 >
 >:white_check_mark: Textures
 >
->:white_circle: Perlin noise
+>:white_check_mark:  Perlin noise
 >
 >:white_circle: Texture mapping
 >

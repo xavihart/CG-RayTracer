@@ -38,6 +38,12 @@ def two_spheres():
     l.append(sphere(vec3(0, -10, 0), 10, lambertian(checker)))
     l.append(sphere(vec3(0, 10, 0), 10, lambertian(checker)))
     return l
+def two_spheres_perlin():
+    tex = noise_texture(3)
+    l = []
+    l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex)))
+    l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
+    return l
 
 def generate_random_spheres():
     """
@@ -158,6 +164,11 @@ def main():
     #lower_left_corner = vec3(-2, -1, -1)
     ny, nx = a.shape[0], a.shape[1] // 3
     aperture = 0
+    """ two green grid spheres
+    look_from = vec3(13, 2, 3)
+    look_at = vec3(0, 0, 0)
+    dist_to_focus = 10
+    """
     look_from = vec3(13, 2, 3)
     look_at = vec3(0, 0, 0)
     dist_to_focus = 10
@@ -189,7 +200,7 @@ def main():
         metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5)]
     """
 
-    l = two_spheres()
+    l = two_spheres_perlin()
     # assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
     print("You generated {} spheres at all".format(len(l)))
 

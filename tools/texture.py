@@ -2,7 +2,7 @@
 from .vec3 import *
 from .utils import *
 from .ray import *
-
+from .perlin import *
 
 class texture:
     def __init__(self):
@@ -29,3 +29,10 @@ class checker_texture(texture):
         else:
             return self.even.value(u, v, p)
     
+class noise_texture(texture):
+    def __init__(self, sc):
+        self.noise = perlin()
+        self.scale = sc
+    def value(self, u, v, p):
+        return vec3(0.5, 0.5, 0.9).mul(0.5 * (1 + math.cos(self.scale * p.z() + 10 * self.noise.turb(p))))
+        

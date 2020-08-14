@@ -70,4 +70,40 @@ def surrounding_bbx(box1:aabb, box2:aabb):
                  max(box1._min.x(), box2._min.y()))
     return aabb(small, large)
               
-        
+
+def perlin_generate()->list: 
+        l = []
+        for _ in range(256):
+            rnd_vec = vec3(np.random.uniform(0, 1) * 2 - 1, np.random.uniform(0, 1) * 2 - 1, np.random.uniform(0, 1) * 2 - 1)
+            rnd_vec.make_unit_vector()
+            l.append(rnd_vec)
+        return l
+def permute(p:list, n:int):
+    # randomly permuate list p
+    for i in range(n - 1, 0, -1):
+        tar = int(np.random.uniform(0, 1) * (i + 1))
+        p[i], p[tar] = p[tar], p[i]
+    return 
+def perlin_generate_perm():
+    p = []
+    for i in range(256):
+        p.append(i)
+    permute(p, 256)
+    return p
+
+
+def nl(x):
+    # def a nolinear function
+    return (x ** 2) * (3 - 2 * x)     
+
+def trilinear_interpolation(c, u, v, w):
+    accum = 0.0
+    uu, vv, ww = nl(u), nl(v), nl(w)
+    for i in range(2):
+        for j in range(2):
+            for k in range(2):
+                wt = vec3(u-i, v-j, w-k)
+                accum += (i*uu+(1-i)*(1-uu)) * (j*vv+(1-j)*(1-vv)) * (k*ww+(1-k)*(1-ww)) * c[i][j][k].dot(wt)
+    return accum
+
+   
