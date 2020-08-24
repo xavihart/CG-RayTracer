@@ -45,7 +45,7 @@ class image_texture(texture):
         B : NY
         """
         self.data = pixels
-        self.nx, self.ny = A, B
+        self.nx, self.ny = B, A
     def value(self, u, v, p:vec3):
         i, j = u  * self.nx, (1 - v) * self.ny - 0.001
         i, j = int(i), int(j)

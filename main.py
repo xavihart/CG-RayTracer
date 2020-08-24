@@ -45,7 +45,7 @@ def two_spheres_perlin():
     l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
     return l
 def two_spheres_texture_mapping():
-    pixels, shape = image_flatten("./TC.JPG")
+    pixels, shape = image_flatten("./earth.JPG")
     h, w = shape[0], shape[1]
     tex = image_texture(pixels, h, w)
     tex2 = noise_texture(3)

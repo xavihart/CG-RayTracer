@@ -129,8 +129,9 @@ def image_flatten(pth):
     """
     tar = cv2.imread(pth)
     shp = tar.shape
+    tar = np.array(tar)
+    tar = tar[:, :, [2, 1, 0]] # cv2 defualt : BGR 
     tar = tar.flatten()
-    print(tar)
     return tar, shp
 
 
