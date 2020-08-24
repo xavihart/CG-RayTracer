@@ -4,11 +4,12 @@ import copy
 from .aabb import *
 from .utils import *
 class hit_record:
-    def __init__(self, t_=0, p_=vec3(0, 0, 0), n_=vec3(0, 0, 0), mat_=lambertian(vec3(0, 0, 0))):
+    def __init__(self, t_=0, p_=vec3(0, 0, 0), n_=vec3(0, 0, 0), mat_=lambertian(vec3(0, 0, 0)), u_=0, v_=0):
         self.t = t_
         self.p = p_
         self.normal = n_
         self.mat = mat_
+        self.u, self.v = u_, v_
 
 class sphere:
     def __init__(self, cen_, rad_, mat_):
@@ -37,6 +38,7 @@ class sphere:
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.cen).div(self.rad)
                 rec.mat = self.mat
+                rec.u, rec.v = get_sphere_uv((rec.p - self.cen).div(self.rad))
                 #rec.normal.show()
                 #print("1")
                 return (rec, True)
@@ -46,6 +48,7 @@ class sphere:
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.cen).div(self.rad)
                 rec.mat = self.mat
+                rec.u, rec.v = get_sphere_uv((rec.p - self.cen).div(self.rad))
                 #rec.normal.show()
                 #print("2")
                 return (rec, True)
@@ -83,6 +86,7 @@ class moving_sphere():
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.center(rt)).div(self.rad)
                 rec.mat = self.mat
+                rec.u, rec.v = get_sphere_uv((rec.p - self.cen1).div(self.rad))
                 #rec.normal.show()
                 #print("1")
                 return (rec, True)
@@ -92,6 +96,7 @@ class moving_sphere():
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.center(rt)).div(self.rad)
                 rec.mat = self.mat
+                rec.u, rec.v = get_sphere_uv((rec.p - self.cen1).div(self.rad))
                 #rec.normal.show()
                 #print("2")
                 return (rec, True)

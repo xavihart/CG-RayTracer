@@ -2,7 +2,16 @@ from .ray import *
 from .utils import *
 from .texture import *
 
-class lambertian:
+class material:
+    # base class for all materials
+    def scatter(self, rin, args):
+        return 
+    def emitted(self, u, v, p):
+        return vec3(0, 0, 0)
+
+
+
+class lambertian(material):
     def __init__(self, a):
         self.albedo = a
     def scatter(self, rin, args):
@@ -11,12 +20,11 @@ class lambertian:
         args['scattered'] = ray(rec.p, tar - rec.p, rin.time())
         #print("scattered")
         #scattered.direction().show()
-        args['attenuation'] = self.albedo.value(0, 0, args['rec'].p)
-    
+        args['attenuation'] = self.albedo.value(args['rec'].u, args['rec'].v, args['rec'].p)
         return True
 
 
-class metal:
+class metal(material):
     def __init__(self, a, f):
         self.albedo = a
         self.fuzz = 1 if f >= 1 else f
@@ -32,7 +40,7 @@ class metal:
 
 
 
-class dielectric:
+class dielectric(material):
     def __init__(self, ri):
         self.ref_idx = ri
         # self.attenuation = a

@@ -35,4 +35,30 @@ class noise_texture(texture):
         self.scale = sc
     def value(self, u, v, p):
         return vec3(0.5, 0.5, 0.9).mul(0.5 * (1 + math.cos(self.scale * p.z() + 10 * self.noise.turb(p))))
-        
+
+class image_texture(texture):
+    def __init__(self, pixels, A, B):
+        """
+        param:
+        pixels : a flattened image pixels, [1*(n*m)]
+        A : NX
+        B : NY
+        """
+        self.data = pixels
+        self.nx, self.ny = A, B
+    def value(self, u, v, p:vec3):
+        i, j = u  * self.nx, (1 - v) * self.ny - 0.001
+        i, j = int(i), int(j)
+        i = 0 if i < 0 else i
+        j = 0 if j < 0 else j
+        i = self.nx - 1 if i > self.nx - 1 else i
+        j = self.ny - 1 if j > self.ny - 1 else j
+        #print(i, j, "---------")
+        r = int(self.data[3*i + 3*self.nx*j]) / 255.0
+        g = int(self.data[3*i + 3*self.nx*j + 1]) / 255.0
+        b = int(self.data[3*i + 3*self.nx*j + 2]) / 255.0
+        # print(r, g, b)
+        return vec3(r, g, b)
+
+
+    

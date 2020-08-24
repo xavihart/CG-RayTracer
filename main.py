@@ -44,6 +44,15 @@ def two_spheres_perlin():
     l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex)))
     l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
     return l
+def two_spheres_texture_mapping():
+    pixels, shape = image_flatten("./TC.JPG")
+    h, w = shape[0], shape[1]
+    tex = image_texture(pixels, h, w)
+    tex2 = noise_texture(3)
+    l = []
+    l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex2)))
+    l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
+    return l
 
 def generate_random_spheres():
     """
@@ -143,11 +152,14 @@ def color(r, objs, dep):
         scattered = ray()
         # print("#####################2")
         args = {'rec':rec, 'attenuation':attenuation, 'scattered':scattered}
+        argsrec =args['rec']
+        emit = args['rec'].mat.emitted(argsrec.u, argsrec.v, argsrec.p)
         if dep < 50 and rec.mat.scatter(r, args):
-            return color(args['scattered'], objs, dep + 1) * args['attenuation']
+            return emit + color(args['scattered'], objs, dep + 1) * args['attenuation']
         else:
-            return vec3(0, 0, 0)
+            return emit
     else:
+        
         unit_dir = r.direction()
         # print("#####################")
         # r.direction().show()
@@ -155,7 +167,10 @@ def color(r, objs, dep):
         t = 0.5 * (unit_dir.y() + 1)
         # print(t)
         return vec3(1 ,1, 1).mul(1 - t) + vec3(0.5, 0.7, 1.0).mul(t)
-
+        """
+        # black bkg
+        return vec3(0, 0, 0)
+        """
     
 
 
@@ -200,7 +215,7 @@ def main():
         metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5)]
     """
 
-    l = two_spheres_perlin()
+    l = two_spheres_texture_mapping()
     # assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
     print("You generated {} spheres at all".format(len(l)))
 

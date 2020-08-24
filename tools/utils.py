@@ -2,6 +2,7 @@ from .vec3 import *
 from .aabb import *
 import numpy as np
 import os 
+import cv2
 
 
 def save_ppm(file_path, ppm_mat):
@@ -106,4 +107,31 @@ def trilinear_interpolation(c, u, v, w):
                 accum += (i*uu+(1-i)*(1-uu)) * (j*vv+(1-j)*(1-vv)) * (k*ww+(1-k)*(1-ww)) * c[i][j][k].dot(wt)
     return accum
 
-   
+def get_sphere_uv(p:vec3):
+    """
+    param: p, point on the sphere
+    return u, v, which determine the 
+           coordinate of sphere into 2-D
+    """
+    phi = math.atan2(p.z(), p.x())
+    theta = math.asin(p.y())
+    u = 1 - (phi + math.pi) / (math.pi * 2)
+    v = (theta + math.pi / 2) / (math.pi)
+    return u, v
+
+def image_flatten(pth):
+    """
+    param: 
+    pth : the path for the image, suposed to be *.jpg
+    return : a flattened image listed obj
+    e.g. 
+    get_sphere_uv((rec.p-center)/radius, rec.u, rec.v);
+    """
+    tar = cv2.imread(pth)
+    shp = tar.shape
+    tar = tar.flatten()
+    print(tar)
+    return tar, shp
+
+
+

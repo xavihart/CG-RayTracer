@@ -40,9 +40,10 @@ class bvh_node:
         rec = hit_record()
         f = self.box.hit(r, tmin, tmax)
         if f:
-            l_flag, l_rcd = self.left.hit(r, tmin, tmax)
-            r_flag, r_rcd = self.right.hit(r, tmin, tmax)
-            ## ??????????
+            l_rcd, l_flag = self.left.hit(r, tmin, tmax)
+            r_rcd, r_flag = self.right.hit(r, tmin, tmax)
+            ## ??? it seems that we still use the original hit function to make decision, 
+            ## which may of no use actually regarding the time complexity
             if l_flag and r_flag:
                 if l_rcd.t < r_rcd.t:
                     return (True, l_rcd)
