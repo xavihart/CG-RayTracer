@@ -5,9 +5,9 @@ implementation of “Ray Tracing in one Weekend“ by ___Peter Shirley___
 
 Properties:  
 
-- in Python3
+- in Python3, numpy, cv2
 
-- in infant stage
+- in infant stage, bug exists maybe
 - single thread, to be improved
 
 :white_check_mark: First Week
@@ -30,13 +30,13 @@ Properties:
 >
 >:white_check_mark: Moving sphere
 >
->:white_check_mark: BVH
+>:white_check_mark: BVH speed-up
 >
 >:white_check_mark: Textures
 >
 >:white_check_mark:  Perlin noise
 >
->:white_circle: Texture mapping
+>:white_check_mark: Texture mapping
 >
 >:white_circle: rectangles and lights
 >
