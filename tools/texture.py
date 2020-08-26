@@ -34,7 +34,7 @@ class noise_texture(texture):
         self.noise = perlin()
         self.scale = sc
     def value(self, u, v, p):
-        return vec3(0.5, 0.5, 0.9).mul(0.5 * (1 + math.cos(self.scale * p.z() + 10 * self.noise.turb(p))))
+        return vec3(1, 1, 1).mul(0.5 * (1 + math.cos(self.scale * p.z() + 10 * self.noise.turb(p))))
 
 class image_texture(texture):
     def __init__(self, pixels, A, B):

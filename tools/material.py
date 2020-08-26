@@ -68,6 +68,14 @@ class dielectric(material):
             return False
         return True
 
+class diffuse_light(material):
+    def __init__(self, a:texture):
+        self.emit = a
+    def scatter(self, rin:ray, args):
+        return False
+    def emitted(self, u, v, p:vec3):
+        return self.emit.value(u, v, p)
+
 
 
             
