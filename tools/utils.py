@@ -20,7 +20,7 @@ def save_ppm(file_path, ppm_mat):
 
 def random_unit_sphere():
     p = vec3(1, 1, 1)
-    while p.squared_length() >= 1:
+    while p.squared_length() >= 0.5:
         p = vec3(np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)) \
             .mul(2) - vec3(1, 1, 1)
     return p 

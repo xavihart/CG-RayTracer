@@ -119,7 +119,7 @@ class xy_rect:
         return box
     def hit(self, r:ray, t0, t1)->(hit_record, bool):
         x0, x1, y0, y1 = self.x0, self.x1, self.y0, self.y1
-        t = (self.k - r.origin().z()) / r.direction().z()
+        t = (self.k - r.origin().z()) / (r.direction().z() + 0.00001)
         rec = hit_record()
         if t < t0 or t >t1 :
             return (hit_record, False)
@@ -134,6 +134,86 @@ class xy_rect:
         rec.p = r.point_at_parameter(t)
         rec.normal = vec3(0, 0, 1) # point up along axis-z
         return (rec, True)
+
+class xz_rect:
+    def __init__(self, x0_, x1_, y0_, y1_, k_, mat_):
+        self.x0 = x0_
+        self.x1 = x1_
+        self.z0 = y0_
+        self.z1 = y1_
+        self.k = k_
+        self.mat = mat_
+    def bbx(self, t0, t1):
+        box = aabb(vec3(self.x0, self.z0, self.k-0.0001), \
+            vec3(self.x1, self.z1, self.k+0.0001))
+        # avoid it to become a 0-width plane
+        return box
+    def hit(self, r:ray, t0, t1)->(hit_record, bool):
+        x0, x1, y0, y1 = self.x0, self.x1, self.z0, self.z1
+        rec = hit_record()
+        if r.direction().y() == 0:
+            return (rec, False) 
+        t = (self.k - r.origin().y()) / (r.direction().y())
+        if t < t0 or t > t1 :
+            return (rec, False)
+        x = r.origin().x() + t * r.direction().x()
+        y = r.origin().z() + t * r.direction().z()
+        if x > x1 or x < x0 or y < y0 or y > y1:
+            return (hit_record, False)
+        rec.u = (x - x0) / (x1 - x0)
+        rec.v = (y - y0) / (y1 - y0)
+        rec.t = t
+        rec.mat = self.mat
+        rec.p = r.point_at_parameter(t)
+        rec.normal = vec3(0, 1, 0) # point up along axis-z
+        return (rec, True)
+
+
+class yz_rect:
+    def __init__(self, x0_, x1_, y0_, y1_, k_, mat_):
+        self.y0 = x0_
+        self.y1 = x1_
+        self.z0 = y0_
+        self.z1 = y1_
+        self.k = k_
+        self.mat = mat_
+    def bbx(self, t0, t1):
+        box = aabb(vec3(self.y0, self.z0, self.k-0.0001), \
+            vec3(self.y1, self.z1, self.k+0.0001))
+        # avoid it to become a 0-width plane
+        return box
+    def hit(self, r:ray, t0, t1)->(hit_record, bool):
+        x0, x1, y0, y1 = self.y0, self.y1, self.z0, self.z1
+        t = (self.k - r.origin().x()) / (r.direction().x() + 0.00001)
+        rec = hit_record()
+        if t < t0 or t >t1 :
+            return (hit_record, False)
+        x = r.origin().y() + t * r.direction().y()
+        y = r.origin().z() + t * r.direction().z()
+        if x > x1 or x < x0 or y < y0 or y > y1:
+            return (hit_record, False)
+        rec.u = (x - x0) / (x1 - x0)
+        rec.v = (y - y0) / (y1 - y0)
+        rec.t = t
+        rec.mat = self.mat
+        rec.p = r.point_at_parameter(t)
+        rec.normal = vec3(1, 0, 0) # point up along axis-z
+        return (rec, True)
+
+
+class flip_normals:
+    def __init__(self, p):
+        self.obj = p
+    def hit(self, r, tmin, tmax)->(hit_record, bool):
+        (rec, f) = self.obj.hit(r, tmin, tmax)
+        if f:
+            rec.normal =  - rec.normal
+            return (rec, True)
+        else:
+            return (rec, False)
+    def bbx(self, t0, t1):
+        return self.obj.bbx()
+            
 
 
 

@@ -59,9 +59,25 @@ def two_spheres_with_lightenning_rect():
     l = []
     l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex)))
     l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
-    l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(4,4,4)))))
-    l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(4,4,4)))))
+    l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(15,15,15)))))
+    l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(15,15,15)))))
     return l
+
+def cornell_box():
+    l = []
+    red = lambertian(constant_texture(vec3(0.65, 0.05, 0.05)))
+    white = lambertian(constant_texture(vec3(0.73, 0.73, 0.73)))
+    green = lambertian(constant_texture(vec3(0.12, 0.45, 0.15)))
+    light =  diffuse_light(constant_texture(vec3(4, 4, 4)))
+
+    l.append(flip_normals(yz_rect(0, 555, 0, 555, 555, green)))
+    l.append(yz_rect(0, 555, 0, 555, 0, red)) # 
+    l.append(xz_rect(200, 300, 200, 300, 554, light))
+    l.append(flip_normals(xz_rect(0, 555, 0, 555, 555, white)))
+    l.append(xz_rect(0, 555, 0, 555, 0, white))
+    l.append(flip_normals(xy_rect(0, 555, 0, 555, 555, white)))
+    return l
+
 
 def generate_random_spheres():
     """
@@ -154,7 +170,7 @@ def color1(r, obj):
 
 def color(r, objs, dep):
     rec = hit_record()
-    (rec, f) = objs.hit(r, 0, MAXNUM)
+    (rec, f) = objs.hit(r, 0.0001, MAXNUM)
     # r.direction().show()
     if f:
         attenuation = vec3()
@@ -163,7 +179,7 @@ def color(r, objs, dep):
         args = {'rec':rec, 'attenuation':attenuation, 'scattered':scattered}
         argsrec =args['rec']
         emit = args['rec'].mat.emitted(argsrec.u, argsrec.v, argsrec.p)
-        if dep < 100 and rec.mat.scatter(r, args):
+        if dep < 50 and rec.mat.scatter(r, args):
             return emit + color(args['scattered'], objs, dep + 1) * args['attenuation']
         else:
             return emit
@@ -193,11 +209,20 @@ def main():
     look_at = vec3(0, 0, 0)
     dist_to_focus = 10
     """
-    look_from = vec3(13, 5, 2)
-    look_at = vec3(0, 2, 0)
-    dist_to_focus = 10
 
-    cam = camera(look_from, look_at, vec3(0, 1, 0), 30, nx / ny, aperture, dist_to_focus, 0, 1)    
+     #for cornell box 
+    look_from = vec3(278, 278, -800)
+    look_at = vec3(278, 278, 0)
+    dist_to_focus = 10
+    
+    """
+    look_from = vec3(13, 4, 2)
+    look_at = vec3(0, 1, 0)
+    dist_to_focus = 10
+    """
+
+
+    cam = camera(look_from, look_at, vec3(0, 1, 0), 40, nx / ny, aperture, dist_to_focus, 0, 1)    
     ns = args.ns
     l = []
     ## sphere properties list
@@ -224,9 +249,9 @@ def main():
         metal(vec3(0.8, 0.6, 0.2), 0), dielectric(1.5)]
     """
 
-    # l = two_spheres_texture_mapping()
+    #l = two_spheres_texture_mapping()
     # assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
-    l = two_spheres_with_lightenning_rect()
+    l = cornell_box()
     print("You generated {} objects at all".format(len(l)))
 
     # for i in range(len(sphere_mat)):
@@ -240,7 +265,6 @@ def main():
             v = j / ny
             col = vec3(0, 0, 0)
             # background diffusion
-            """
             for _ in range(ns):
                 u_, v_ = -1, -1
                 while u_ > 1 or u_ < 0:
@@ -253,9 +277,6 @@ def main():
                 col = col + color(r_, sp_l, 0)
             # gamma repair
             col = col.div(ns)
-            """
-            r = cam.get_ray(u, v)
-            col = col + color(r, sp_l, 0)
             col = vec3(math.sqrt(col.x()), math.sqrt(col.y()), math.sqrt(col.z()))
             if col.length() != 0:
                 #col.show()
