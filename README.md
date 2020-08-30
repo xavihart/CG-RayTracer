@@ -38,7 +38,7 @@ Properties:
 >
 >:white_check_mark: Texture mapping
 >
->:white_circle: rectangles and lights
+>:white_check_mark: Rectangles and lights
 >
 >:white_circle: Instances and volumes 
 
