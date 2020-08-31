@@ -6,6 +6,7 @@ from tools.camera import *
 from tools.material import *
 from tools.aabb import *
 from tools.texture import *
+from tools.box import *
 import numpy as np
 import sys
 import os
@@ -17,6 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--r", default=300, type=int, help="the resolution of the image generated")
 parser.add_argument("--ns", default=1, type=int, help="iteration times for background diffusion")
 parser.add_argument("--name", default="light2", type=str, help="set the name for saving the image")
+parser.add_argument("--scene", type=str, help="set the name for saving the image")
 args = parser.parse_args()
 
 
@@ -27,6 +29,7 @@ rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 a = np.zeros([h, 2*h*3])
 time_st = time.time()
+
 
 print("NOTE: The resolution of your image is:[{} * {}]".format(h, h * 2))
 
@@ -55,12 +58,15 @@ def two_spheres_texture_mapping():
     return l
 
 def two_spheres_with_lightenning_rect():
-    tex = noise_texture(3)
+    tex = noise_texture(4)
     l = []
-    l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex)))
-    l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
-    l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(15,15,15)))))
-    l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(15,15,15)))))
+    pixels, shape = image_flatten("./earth.JPG")
+    h, w = shape[0], shape[1]
+    tex_image = image_texture(pixels, h, w)
+    l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex_image)))
+    l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex_image)))
+    l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(1,1,1)))))
+    l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(1,1,1)))))
     return l
 
 def cornell_box():
@@ -72,10 +78,12 @@ def cornell_box():
 
     l.append(flip_normals(yz_rect(0, 555, 0, 555, 555, green)))
     l.append(yz_rect(0, 555, 0, 555, 0, red)) # 
-    l.append(xz_rect(200, 300, 200, 300, 554, light))
+    l.append(xz_rect(100, 400, 200, 300, 554, light))
     l.append(flip_normals(xz_rect(0, 555, 0, 555, 555, white)))
     l.append(xz_rect(0, 555, 0, 555, 0, white))
     l.append(flip_normals(xy_rect(0, 555, 0, 555, 555, white)))
+    l.append(box(vec3(130, 0, 65), vec3(295, 165, 230), white))
+    l.append(box(vec3(265, 0, 295), vec3(430, 330, 460), white))
     return l
 
 
@@ -179,7 +187,7 @@ def color(r, objs, dep):
         args = {'rec':rec, 'attenuation':attenuation, 'scattered':scattered}
         argsrec =args['rec']
         emit = args['rec'].mat.emitted(argsrec.u, argsrec.v, argsrec.p)
-        if dep < 50 and rec.mat.scatter(r, args):
+        if dep < 20 and rec.mat.scatter(r, args):
             return emit + color(args['scattered'], objs, dep + 1) * args['attenuation']
         else:
             return emit
@@ -209,19 +217,22 @@ def main():
     look_at = vec3(0, 0, 0)
     dist_to_focus = 10
     """
-
-     #for cornell box 
-    look_from = vec3(278, 278, -800)
-    look_at = vec3(278, 278, 0)
-    dist_to_focus = 10
     
-    """
-    look_from = vec3(13, 4, 2)
-    look_at = vec3(0, 1, 0)
-    dist_to_focus = 10
-    """
+     #for cornell box 
+    #look_from = vec3(278, 278, -800)
+    #look_at = vec3(278, 278, 0)
+    #dist_to_focus = 10
+    
+    if args.scene == "2ball":
+        look_from = vec3(13, 4, 2)
+        look_at = vec3(0, 1, 0)
+        dist_to_focus = 10
+    elif args.scene == "cornellbox":
+        look_from = vec3(278, 278, -800)
+        look_at = vec3(278, 278, 0)
+        dist_to_focus = 10
 
-
+    
     cam = camera(look_from, look_at, vec3(0, 1, 0), 40, nx / ny, aperture, dist_to_focus, 0, 1)    
     ns = args.ns
     l = []
@@ -251,7 +262,12 @@ def main():
 
     #l = two_spheres_texture_mapping()
     # assert len(sphere_cen) == len(sphere_mat) and len(sphere_cen) == len(sphere_rad)
-    l = cornell_box()
+    
+    if args.scene == "2ball":
+        l = two_spheres_with_lightenning_rect()
+    elif args.scene == "cornellbox":
+        l = cornell_box()
+
     print("You generated {} objects at all".format(len(l)))
 
     # for i in range(len(sphere_mat)):
