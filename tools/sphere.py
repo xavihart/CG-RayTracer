@@ -11,7 +11,15 @@ class hit_record:
         self.mat = mat_
         self.u, self.v = u_, v_
 
-class sphere:
+class hitable:
+    def __init__(self):
+        return 
+    def bbx(self):
+        return 
+    def hit(self, rin, tmin, tmax)->(hit_record, bool):
+        return
+
+class sphere(hitable):
     def __init__(self, cen_, rad_, mat_):
         self.cen = cen_
         self.rad = rad_
@@ -53,7 +61,7 @@ class sphere:
         return (rec, False)
 
 
-class moving_sphere():
+class moving_sphere(hitable):
     def __init__(self, cen1_, cen2_, t1_, t2_, r, mat_):
         self.cen1 = cen1_
         self.cen2 = cen2_
@@ -104,7 +112,7 @@ class moving_sphere():
         return self.cen1 + (self.cen2 - self.cen1).mul(((t - self.t1) / (self.t2 - self.t1)))
 
 
-class xy_rect:
+class xy_rect(hitable):
     def __init__(self, x0_, x1_, y0_, y1_, k_, mat_):
         self.x0 = x0_
         self.x1 = x1_
@@ -116,7 +124,7 @@ class xy_rect:
         box = aabb(vec3(self.x0, self.y0, self.k-0.0001), \
             vec3(self.x1, self.y1, self.k+0.0001))
         # avoid it to become a 0-width plane
-        return box
+        return (True, box)
     def hit(self, r:ray, t0, t1)->(hit_record, bool):
         x0, x1, y0, y1 = self.x0, self.x1, self.y0, self.y1
         t = (self.k - r.origin().z()) / (r.direction().z() + 0.00001)
@@ -135,7 +143,7 @@ class xy_rect:
         rec.normal = vec3(0, 0, 1) # point up along axis-z
         return (rec, True)
 
-class xz_rect:
+class xz_rect(hitable):
     def __init__(self, x0_, x1_, y0_, y1_, k_, mat_):
         self.x0 = x0_
         self.x1 = x1_
@@ -147,7 +155,7 @@ class xz_rect:
         box = aabb(vec3(self.x0, self.z0, self.k-0.0001), \
             vec3(self.x1, self.z1, self.k+0.0001))
         # avoid it to become a 0-width plane
-        return box
+        return (True, box)
     def hit(self, r:ray, t0, t1)->(hit_record, bool):
         x0, x1, y0, y1 = self.x0, self.x1, self.z0, self.z1
         rec = hit_record()
@@ -169,7 +177,7 @@ class xz_rect:
         return (rec, True)
 
 
-class yz_rect:
+class yz_rect(hitable):
     def __init__(self, x0_, x1_, y0_, y1_, k_, mat_):
         self.y0 = x0_
         self.y1 = x1_
@@ -181,7 +189,7 @@ class yz_rect:
         box = aabb(vec3(self.y0, self.z0, self.k-0.0001), \
             vec3(self.y1, self.z1, self.k+0.0001))
         # avoid it to become a 0-width plane
-        return box
+        return (True, box)
     def hit(self, r:ray, t0, t1)->(hit_record, bool):
         x0, x1, y0, y1 = self.y0, self.y1, self.z0, self.z1
         t = (self.k - r.origin().x()) / (r.direction().x() + 0.00001)
@@ -201,7 +209,7 @@ class yz_rect:
         return (rec, True)
 
 
-class flip_normals:
+class flip_normals(hitable):
     def __init__(self, p):
         self.obj = p
     def hit(self, r, tmin, tmax)->(hit_record, bool):
@@ -215,6 +223,63 @@ class flip_normals:
         return self.obj.bbx()
             
 
+class translate(hitable):
+    def __init__(self, p:hitable, displacemnet_:vec3):
+        self.ptr = p
+        self.offset = displacemnet_
+    def hit(self, r:ray, tmin, tmax)->(hit_record, bool):
+        r_moved = ray(r.origin() - self.offset, r.direction(), r.time())
+        (rec, f) = self.ptr.hit(r_moved, tmin, tmax)
+        if f:
+            rec.p += self.offset
+            return (rec, True)
+        else:
+            return (rec, f)
+    def bbx(self, t0, t1)->(bool, aabb):
+        (f, box) = self.ptr.bbx()
+        if f:
+            box = aabb(box.min() + self.offset, box.max() + self.offset)
+            return (f, box)
+        else:
+            return (f, box)
+
+class rotate_y(hitable):
+    def __init__(self, p:hitable, angle):
+        self.ptr = p
+        rad = (math.pi * 180) * angle
+        self.sin_theta = math.sin(rad)
+        self.cos_theta = math.cos(rad)
+        (_, box) = self.ptr.bbx()
+        min_ = vec3(1e9, 1e9, 1e9)
+        max_ = vec3(-1e9, -1e9, -1e9)
+        for i in range(2):
+            for j in range(2):
+                for k in range(2):
+                    x = i * box._max.x() + (1 - i) * box._min.x()
+                    y = j * box._max.y() + (1 - j) * box._min.y()
+                    z = k * box._max.z() + (1 - k) * box._min.z()
+                    newx = self.cos_theta * x + self.sin_theta * z
+                    newz = - self.sin_theta * x + self.cos_theta * z
+                    tester = vec3(newx, y, newz)
+                    # update max_ and min_
+                    if max_.a < tester.a:
+                        max_.a = tester.a
+                    if max_.b < tester.b:
+                        max_.b = tester.b
+                    if max_.c < tester.c:
+                        max_.c = tester.c
+                    if min_.a > tester.a:
+                        min_.a = tester.a
+                    if min_.b > tester.b:
+                        min_.b = tester.b
+                    if min_.c > tester.c:
+                        min_.c = tester.c
+        self.bbx_box = aabb(min_, max_)
+    def bbx(self):
+        return (True, self.bbx_box)    
+    def hit(self):
+        return
+                             
 
 
 if __name__ == "__main__":
