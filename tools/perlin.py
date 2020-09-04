@@ -21,7 +21,7 @@ class perlin:
                     c[bi][bj][bk] = self.ranfloat[self.perm_x[(i+bi)&255] ^ self.perm_y[(j+bj)&255] ^ self.perm_z[(k+bk)&255]]
         return trilinear_interpolation(c, u, v, w)
 
-    def turb(self, p:vec3, dp=7):
+    def turb(self, p:vec3, dp=3):
         accum = 0
         tmp_p = p
         w = 1.0

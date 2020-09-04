@@ -14,4 +14,4 @@ class box:
     def hit(self, r, tmin, tmax):
         return self.hit_list.hit(r, tmin, tmax)
     def bbx(self, t0, t1):
-        return aabb(self.pmin, self.pmax)
+        return (True, aabb(self.pmin, self.pmax))

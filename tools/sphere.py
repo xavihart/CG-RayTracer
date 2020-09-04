@@ -249,7 +249,9 @@ class rotate_y(hitable):
         rad = (math.pi * 180) * angle
         self.sin_theta = math.sin(rad)
         self.cos_theta = math.cos(rad)
-        (_, box) = self.ptr.bbx()
+       # print(type(self.ptr))
+       # print(self.ptr.bbx(0, 1))
+        (_, box) = self.ptr.bbx(0,1)
         min_ = vec3(1e9, 1e9, 1e9)
         max_ = vec3(-1e9, -1e9, -1e9)
         for i in range(2):
@@ -277,9 +279,27 @@ class rotate_y(hitable):
         self.bbx_box = aabb(min_, max_)
     def bbx(self):
         return (True, self.bbx_box)    
-    def hit(self):
-        return
-                             
+    def hit(self, r:ray, tmin:float, tmax:float)->(hit_record, bool):
+        origin = r.origin()
+        direction = r.direction()
+        origin.a = self.cos_theta * r.origin().a - self.sin_theta * r.origin().c
+        origin.c = self.sin_theta * r.origin().a + self.cos_theta * r.origin().c
+        direction.a = self.cos_theta * r.direction().a - self.sin_theta * r.direction().c
+        direction.c = self.sin_theta * r.direction().a + self.cos_theta * r.direction().c
+        #rotated_r = ray(origin, direction, r.time())
+        (rec, f) = self.ptr.hit(r, tmin, tmax)
+        if f:
+            p = rec.p
+            n = rec.normal
+            p.a = self.cos_theta * rec.p.a + self.sin_theta * rec.p.c
+            p.c = - self.sin_theta * rec.p.a + self.cos_theta * rec.p.c
+            n.a = self.cos_theta * rec.normal.a + self.sin_theta * rec.normal.c
+            n.c = - self.sin_theta * rec.normal.a + self.cos_theta * rec.normal.c
+            rec.p = p
+            rec.n = n
+            return (rec, True)
+        else:
+            return(rec, False)             
 
 
 if __name__ == "__main__":
