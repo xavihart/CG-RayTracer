@@ -16,12 +16,14 @@ import argparse
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--r", default=300, type=int, help="the resolution of the image generated")
+parser.add_argument("--r", default=100, type=int, help="the resolution of the image generated")
 parser.add_argument("--ns", default=1, type=int, help="iteration times for background diffusion")
 parser.add_argument("--name", default="light2", type=str, help="set the name for saving the image")
-parser.add_argument("--scene", type=str, help="set the name for saving the image")
-parser.add_argument("--multithread", default = "off", type=str, help="if open the threadpool and support ms")
+parser.add_argument("--scene", type=str, default="2ball", help="scene to generate, e.g. cornellbox, 2-balls, final...")
+parser.add_argument("--multithread", default = "on", type=str, help="if open the threadpool and support ms")
 parser.add_argument("--threadnum", default = 100, type=int, help="set the name for saving the image")
+parser.add_argument("--show-freq", default = 10, type = int, help = "the frequency to show the process on the screen")
+parser.add_argument("--block-num", default = 100, type = int, help = "the block numbers used for multi-thread")
 
 args = parser.parse_args()
 h = args.r
@@ -30,11 +32,12 @@ curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
 a = np.zeros([h, 2*h*3])
+b = np.ones([h, 2*h])
 time_st = time.time()
 ny, nx = a.shape[0], a.shape[1] // 3
 done_num = 0
 print("NOTE: The resolution of your image is:[{} * {}]".format(h, h * 2))
-file_pth = os.path.join("./results/nxt_week", "{}.ppm".format(args.name))
+file_pth = os.path.join("./results/9-12", "{}.ppm".format(args.name))
 
 def two_spheres():
     checker = checker_texture(constant_texture(vec3(0.2, 0.3, 0.1)), constant_texture(vec3(0.9, 0.9, 0.9)))
@@ -64,10 +67,10 @@ def two_spheres_with_lightenning_rect():
     pixels, shape = image_flatten("./earth.JPG")
     h, w = shape[0], shape[1]
     tex_image = image_texture(pixels, h, w)
-    l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex_image)))
-    l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex_image)))
-    l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(1,1,1)))))
-    l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(1,1,1)))))
+    l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex)))
+    l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
+    l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(4,4,4)))))
+    l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(4,4,4)))))
     return l
 
 def cornell_box():
@@ -198,7 +201,7 @@ def color(r, objs, dep):
         else:
             return emit
     else:
-        """
+        
         unit_dir = r.direction()
         # print("#####################")
         # r.direction().show()
@@ -209,9 +212,9 @@ def color(r, objs, dep):
         """
         # black bkg
         return vec3(0, 0, 0)
-       
+        """
     
-def color_function_thread(i, j, cam, sp_l):
+def color_function_thread_pixel(i, j, cam, sp_l):
     """s
     param:
     i, j :  the indexes for the pixel
@@ -219,6 +222,9 @@ def color_function_thread(i, j, cam, sp_l):
     sp_l : sphere_list instance
     return : none, change values of matrix "a"
     """
+    global nx
+    global ny
+    global args
     u = i / nx
     v = j / ny
     col = vec3(0, 0, 0)
@@ -226,9 +232,9 @@ def color_function_thread(i, j, cam, sp_l):
     for _ in range(ns):
         u_, v_ = -1, -1
         while u_ > 1 or u_ < 0:
-            u_ = u + np.random.uniform(0, 1e-5)
+            u_ = u + np.random.uniform(0, 1e-4)
         while v_ > 1 or v_ < 0:
-            v_ = v + np.random.uniform(0, 1e-5)
+            v_ = v + np.random.uniform(0, 1e-4)
         # get sight
         r_ = cam.get_ray(u_, v_)
         # print(r_.time())
@@ -239,12 +245,47 @@ def color_function_thread(i, j, cam, sp_l):
     a[ny - 1 - j][i * 3], a[ny - 1 - j][i * 3 + 1], a[ny - 1 - j][i * 3 + 2] = ir, ig, ib
     global done_num
     done_num += 1
-    if done_num % 5000 == 0:
+    if done_num % args.show_freq == 0:
         print("[{}/{}] --- ({}%%)".format(done_num, nx * ny, done_num/nx/ny))
     return 
 
-def color_function_thread_2(i, j, cam, sp_l):
-    pass
+def color_function_thread_pixel_list(pixel_list, cam, sp_l):
+    """
+    pixel_list: list like [[x1,y1], [x2, y2]]
+    """
+    times = time.time()
+    x_list = [i[0] for i in pixel_list]
+    y_list = [i[1] for i in pixel_list]
+    assert len(x_list) == len(y_list)
+    for p in range(len(pixel_list)):
+        x, y = x_list[p], y_list[p]
+        u = x / nx
+        v = y / ny
+        i, j = x, y
+        col = vec3(0, 0, 0)
+        ns = args.ns
+        for _ in range(ns):
+            u_, v_ = -1, -1
+            while u_ > 1 or u_ < 0:
+                u_ = u + np.random.uniform(0, 1e-5)
+            while v_ > 1 or v_ < 0:
+                v_ = v + np.random.uniform(0, 1e-5)
+            # get sight
+            r_ = cam.get_ray(u_, v_)
+            # print(r_.time())
+            col = col + color(r_, sp_l, 0)
+        col = col.div(ns)
+        col = vec3(math.sqrt(col.x()), math.sqrt(col.y()), math.sqrt(col.z()))
+        ir, ig, ib = int(255.99 * col.x()), int(255.99 * col.y()), int(255.99 * col.z())
+        global a, b
+        a[ny - 1 - j][i * 3], a[ny - 1 - j][i * 3 + 1], a[ny - 1 - j][i * 3 + 2] = ir, ig, ib
+        b[y][x] = 0
+        global done_num
+    done_num += 1
+    print("time:", time.time() - times)
+    return 
+        
+    
 def main_multithread():
     # set scene and cam
     aperture = 0
@@ -268,19 +309,26 @@ def main_multithread():
     taskpool = threadpool.ThreadPool(args.threadnum)
     ## generate the param dir : [(None, {'i':, 'j':, 'cam':, 'sp_l':}), {}, {}]  
     args_list = []
-    for i in range(nx):
+    plist = []
+    for i in tqdm(range(nx)):
         for j in range(ny-1, -1, -1):
-            d = {}
-            d['i'], d['j'] = i, j
-            d['cam'] = cam
-            d['sp_l'] = sp_l
-            args_list.append((None, d))
+            plist.append([i, j])
+    plist = np.array(plist)
+    plist = np.random.permutation(plist)
+    plist = np.split(plist, args.block_num, axis=0)
+    for i in range(len(plist)):
+        d = {}
+        d['pixel_list'] = plist[i]
+        d['cam'] = cam
+        d['sp_l'] = sp_l
+        args_list.append((None, d))
+    
+    # create the threadpool
     t1  = time.time()
-    req = threadpool.makeRequests(color_function_thread, args_list)
-    print("make reqs timecsm", (time.time() - t1)/60)
+    req = threadpool.makeRequests(color_function_thread_pixel_list, args_list)
     t2 = time.time()
     [taskpool.putRequest(r) for r in req]
-
+     
     taskpool.wait()    
     ## to do
     ## [pool.putRequest(r) for r in requests]
@@ -289,6 +337,7 @@ def main_multithread():
     save_ppm(file_pth, a)
     time_ed = time.time()
     print("Time consm:", (time_ed - time_st) / 60, "min")
+    print(b.sum())
     return 
 
 
@@ -370,6 +419,7 @@ def main():
     print(cnt)
 
 if args.multithread == "off":
+    print("you are now using single thread to run, may be slower")
     main()
 elif args.multithread == "on":
     print("you are now using multithread")
