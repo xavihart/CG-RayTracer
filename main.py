@@ -7,6 +7,7 @@ from tools.material import *
 from tools.aabb import *
 from tools.texture import *
 from tools.box import *
+from tools.Myprocess import myProcess
 import threadpool
 import numpy as np
 import sys
@@ -14,6 +15,7 @@ import os
 import time
 import argparse
 from tqdm import tqdm
+import multiprocessing as ml
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--r", default=100, type=int, help="the resolution of the image generated")
@@ -37,7 +39,7 @@ time_st = time.time()
 ny, nx = a.shape[0], a.shape[1] // 3
 done_num = 0
 print("NOTE: The resolution of your image is:[{} * {}]".format(h, h * 2))
-file_pth = os.path.join("./results/9-12", "{}.ppm".format(args.name))
+
 
 def two_spheres():
     checker = checker_texture(constant_texture(vec3(0.2, 0.3, 0.1)), constant_texture(vec3(0.9, 0.9, 0.9)))
@@ -69,8 +71,8 @@ def two_spheres_with_lightenning_rect():
     tex_image = image_texture(pixels, h, w)
     l.append(sphere(vec3(0, -1000, 0), 1000, lambertian(tex)))
     l.append(sphere(vec3(0, 2, 0), 2, lambertian(tex)))
-    l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(4,4,4)))))
-    l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(4,4,4)))))
+    #l.append(sphere(vec3(0, 7, 0), 2, diffuse_light(constant_texture(vec3(4,4,4)))))
+    #l.append(xy_rect(3, 5, 1, 3, -2, diffuse_light(constant_texture(vec3(4,4,4)))))
     return l
 
 def cornell_box():
@@ -284,7 +286,7 @@ def color_function_thread_pixel_list(pixel_list, cam, sp_l):
     done_num += 1
     print("time:", time.time() - times)
     return 
-        
+  
     
 def main_multithread():
     # set scene and cam
@@ -340,6 +342,84 @@ def main_multithread():
     print(b.sum())
     return 
 
+def main_multiprocess(args):
+    # set scene and cam
+    aperture = 0
+    time_st = time.time()
+    if args.scene == "2ball":
+        look_from = vec3(13, 4, 2)
+        look_at = vec3(0, 1, 0)
+        dist_to_focus = 10
+    elif args.scene == "cornellbox":
+        look_from = vec3(278, 278, -800)
+        look_at = vec3(278, 278, 0)
+        dist_to_focus = 10
+    cam = camera(look_from, look_at, vec3(0, 1, 0), 40, nx / ny, aperture, dist_to_focus, 0, 1)    
+    if args.scene == "2ball":
+        l = two_spheres_with_lightenning_rect()
+    elif args.scene == "cornellbox":
+        l = cornell_box()
+    print("You generated {} objects at all".format(len(l)))
+    sp_l = sphere_list(l)
+    ## multiprocess part
+    blocks=[]
+    with ml.Manager() as MG:
+        # color block
+        for i in range(args.block_num):
+           blocks.append(ml.Manager().list([]))
+    plist = []
+    for i in tqdm(range(nx)):
+        for j in range(ny-1, -1, -1):
+            plist.append([i, j])
+    plist = np.array(plist)
+    plist = np.random.permutation(plist)
+    plist = np.split(plist, args.block_num, axis=0)
+    process_list = []
+    for i in range(len(plist)):
+        d = {}
+        d['pixel_list'] = plist[i]
+        d['cam'] = cam
+        d['sp_l'] = sp_l
+        d['a'] = a
+        d['block'] = blocks[i]
+        d['nx'] = nx
+        d['ny'] = ny
+        d['ns'] = args.ns
+        process_list.append(myProcess(d))
+    alive_number = len(process_list)
+    
+    for i in range(len(process_list)):
+        process_list[i].start()
+    print("id in main", id(a))
+    timer = 0
+    """
+    while alive_number != 0:
+        t = 0
+        done = 0
+        for p in process_list:
+            done += p.get_stat()
+            if p.is_alive():
+                t += 1
+        done /= len(process_list)
+        if t < alive_number:
+            print("done ++ -> {}", len(process_list) - t)
+        alive_number = t
+    """
+    time_ed = time.time()
+    
+    #for p in process_list:
+     #   p.join()
+    for i_ in range(args.block_num):
+        for j_, item in enumerate(blocks[i_]):
+             i, j = plist[i_][j_][0], plist[i_][j_][1]
+             ir, ig, ib = item[0], item[1], item[2] 
+             a[ny - 1 - j][i * 3], a[ny - 1 - j][i * 3 + 1], a[ny - 1 - j][i * 3 + 2] = ir, ig, ib     
+
+    #print(a.sum())
+    save_ppm(file_pth, a)
+    print("Time consm:", (time_ed - time_st) / 60, "min")
+    
+    return 
 
 
 def main():
@@ -418,11 +498,20 @@ def main():
     print("Time consm:", (time_ed - time_st) / 60, "min")
     print(cnt)
 
-if args.multithread == "off":
-    print("you are now using single thread to run, may be slower")
-    main()
-elif args.multithread == "on":
-    print("you are now using multithread")
-    main_multithread()
-else:
-    print("param error" + "-" * 15)
+
+if __name__ == "__main__":
+    save_path = "./results/9-13"
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    file_pth = os.path.join("./results/9-13", "{}.ppm".format(args.name))
+
+    if args.multithread == "off":
+        print("you are now using single thread to run, may be slower")
+        main()
+    elif args.multithread == "on":
+        print("you are now using multithread")
+        main_multiprocess(args)
+    else:
+        print("param error" + "-" * 15)
