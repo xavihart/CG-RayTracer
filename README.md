@@ -3,12 +3,30 @@
 
 implementation of “Ray Tracing in one Weekend“ by ___Peter Shirley___ 
 
-Properties:  
+## Depend on libs as follows:
 
-- in Python3, numpy, cv2
+- `Python3`, ` numpy`, `opencv`, `multiprocessing`, `sys`, `tqdm`
+
+## Properties:
 
 - in infant stage, bug exists maybe
-- single thread, to be improved
+- naive-multiprocessing
+
+## Multiprocessing-Strategy
+
+- assumption : Dividing the image into blocks maybe unbalanced, since pixels with high computational complexity is always clustering.
+- implementation : We simple choose randomly permutated pixel arrays as blocks, to balance the work for each process
+- to do : Maybe we can first tracing rays in a relatively small image for specific scenes, then we get the map for computational complexity, according to which we  scale it into normal size to assign pixels to each process. 
+
+##  Run
+
+```
+python ./main.py --ns [ns] --r [resolution] --name [file-name] --multithread [on or off] --block-num [process number]
+```
+
+
+
+## Working Flows
 
 :white_check_mark: First Week
 
