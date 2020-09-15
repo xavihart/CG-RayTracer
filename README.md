@@ -14,9 +14,9 @@ implementation of “Ray Tracing in one Weekend“ by ___Peter Shirley___
 
 ## Multiprocessing-Strategy
 
-- assumption : Dividing the image into blocks maybe unbalanced, since pixels with high computational complexity is always clustering.
-- implementation : We simple choose randomly permutated pixel arrays as blocks, to balance the work for each process
-- to do : Maybe we can first tracing rays in a relatively small image for specific scenes, then we get the map for computational complexity, according to which we  scale it into normal size to assign pixels to each process. 
+- assumption : Dividing the image into blocks may be unbalanced for processes, since pixels with high computational complexity is always clustering.
+- implementation : We simple choose randomly permutated pixel arrays as blocks to balance the work for each process.
+- to do : Maybe we can first tracing rays in a relatively small image for specific scenes with low computational cost, then we get the map for computational complexity(timeCMD), according to which we can scale up the map into normal size to assign pixels to each process. 
 
 ##  Run
 
