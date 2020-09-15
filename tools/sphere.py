@@ -46,7 +46,7 @@ class sphere(hitable):
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.cen).div(self.rad)
                 rec.mat = self.mat
-                rec.u, rec.v = get_sphere_uv((rec.p - self.cen).div(self.rad))
+                #rec.u, rec.v = get_sphere_uv((rec.p - self.cen).div(self.rad))
                 return (rec, True)
             tmp = (-b + math.sqrt(disc)) / a
             if tmp < t_max and tmp > t_min:
@@ -92,7 +92,8 @@ class moving_sphere(hitable):
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.center(rt)).div(self.rad)
                 rec.mat = self.mat
-                rec.u, rec.v = get_sphere_uv((rec.p - self.cen1).div(self.rad))
+                #rec.u, rec.v = get_sphere_uv((rec.p - self.cen1).div(self.rad))
+               
                 #rec.normal.show()
                 #print("1")
                 return (rec, True)
@@ -102,7 +103,7 @@ class moving_sphere(hitable):
                 rec.p = r.point_at_parameter(tmp)
                 rec.normal = (rec.p - self.center(rt)).div(self.rad)
                 rec.mat = self.mat
-                rec.u, rec.v = get_sphere_uv((rec.p - self.cen1).div(self.rad))
+                #rec.u, rec.v = get_sphere_uv((rec.p - self.cen1).div(self.rad))
                 #rec.normal.show()
                 #print("2")
                 return (rec, True)

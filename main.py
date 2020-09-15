@@ -203,7 +203,6 @@ def color(r, objs, dep):
         else:
             return emit
     else:
-        
         unit_dir = r.direction()
         # print("#####################")
         # r.direction().show()
@@ -300,11 +299,16 @@ def main_multithread():
         look_from = vec3(278, 278, -800)
         look_at = vec3(278, 278, 0)
         dist_to_focus = 10
+        
+ 
     cam = camera(look_from, look_at, vec3(0, 1, 0), 40, nx / ny, aperture, dist_to_focus, 0, 1)    
+    
     if args.scene == "2ball":
         l = two_spheres_with_lightenning_rect()
     elif args.scene == "cornellbox":
         l = cornell_box()
+    elif args.scene == "final1":
+        l = generate_random_spheres()
     print("You generated {} objects at all".format(len(l)))
     sp_l = sphere_list(l)
     ## multithread part
@@ -354,11 +358,19 @@ def main_multiprocess(args):
         look_from = vec3(278, 278, -800)
         look_at = vec3(278, 278, 0)
         dist_to_focus = 10
+    elif args.scene == "final1":
+        aperture = 0
+        dist_to_focus = 10
+        look_from = vec3(3, 2, 3)
+        look_at = vec3(0, 0, -1)
+
     cam = camera(look_from, look_at, vec3(0, 1, 0), 40, nx / ny, aperture, dist_to_focus, 0, 1)    
     if args.scene == "2ball":
         l = two_spheres_with_lightenning_rect()
     elif args.scene == "cornellbox":
         l = cornell_box()
+    elif args.scene == "final1":
+        l = generate_random_spheres()
     print("You generated {} objects at all".format(len(l)))
     sp_l = sphere_list(l)
     ## multiprocess part
@@ -405,6 +417,8 @@ def main_multiprocess(args):
             print("done ++ -> {}", len(process_list) - t)
         alive_number = t
     """
+    for i in range(len(process_list)):
+        process_list[i].join()
     time_ed = time.time()
     
     #for p in process_list:
@@ -445,9 +459,14 @@ def main():
         look_from = vec3(278, 278, -800)
         look_at = vec3(278, 278, 0)
         dist_to_focus = 10
-
-    
+    if args.scene == "final1": 
+        aperture = 2
+        look_from = vec3(3, 2, 3)
+        look_at = vec3(0, 0, -1)
+        dist_to_focus = 10
     cam = camera(look_from, look_at, vec3(0, 1, 0), 40, nx / ny, aperture, dist_to_focus, 0, 1)    
+    
+    
     ns = args.ns
     l = []
     ## sphere properties list
@@ -458,6 +477,8 @@ def main():
         l = two_spheres_with_lightenning_rect()
     elif args.scene == "cornellbox":
         l = cornell_box()
+    elif args.scene == "final1":
+        l = generate_random_spheres()
 
     print("You generated {} objects at all".format(len(l)))
 
